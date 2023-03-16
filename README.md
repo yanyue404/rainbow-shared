@@ -4,12 +4,97 @@
 
 rainbow 的 实用函数， 基于 @vue/shared
 
-**cdn**
+## support utils
+
+```js
+export {
+  EMPTY_ARR,
+  EMPTY_OBJ,
+  NO,
+  NOOP,
+  camelize,
+  capitalize,
+  debounce,
+  def,
+  escapeHtml,
+  escapeHtmlComment,
+  extend,
+  getGlobalThis,
+  hasChanged,
+  hasOwn,
+  hyphenate,
+  invokeArrayFns,
+  isArray,
+  isDate,
+  isDef,
+  isFalse,
+  isFunction,
+  isHTMLTag,
+  isMap,
+  isModelListener,
+  isObject,
+  isOn,
+  isPlainObject,
+  isPrimitive,
+  isPromise,
+  isRegExp,
+  isSet,
+  isString,
+  isSymbol,
+  isTrue,
+  isUndef,
+  looseEqual,
+  looseIndexOf,
+  makeMap,
+  normalizeClass,
+  normalizeProps,
+  normalizeStyle,
+  objectToString,
+  once,
+  parseStringStyle,
+  remove,
+  stringifyStyle,
+  toArray,
+  toDisplayString,
+  toHandlerKey,
+  toNumber,
+  toObject,
+  toRawType,
+  toString,
+  toTypeString,
+  warn,
+};
+```
+
+
+## cdn
 
 - https://cdn.jsdelivr.net/npm/rainbow-shared/dist/index.iife.js
 - https://unpkg.com/rainbow-shared/dist/index.iife.js
 
-**npm use**
+**demo**
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>rainbow-shared use cdn</title>
+  </head>
+  <body>
+    <script src="https://cdn.jsdelivr.net/npm/rainbow-shared/dist/index.iife.js"></script>
+
+    <script>
+      console.log(R.looseEqual(["Hello,world!"], ["Hello,world!"])); // true
+    </script>
+  </body>
+</html>
+
+```
+
+## npm use
 
 ```bash
 npm install rainbow-shared
