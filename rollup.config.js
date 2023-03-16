@@ -87,7 +87,7 @@ if (isPrd) {
     }
   );
   // 压缩一下
-  /*   config.plugins.push(
+  config.plugins.push(
     terser({
       compress: {
         pure_getters: true,
@@ -96,7 +96,7 @@ if (isPrd) {
         warnings: false,
       },
     })
-  ); */
+  );
 }
 
 export default config;

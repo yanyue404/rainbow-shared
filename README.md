@@ -4,75 +4,36 @@
 
 rainbow 的 实用函数， 基于 @vue/shared
 
-## support utils
+## Install
 
-```js
-export {
-  EMPTY_ARR,
-  EMPTY_OBJ,
-  NO,
-  NOOP,
-  camelize,
-  capitalize,
-  debounce,
-  def,
-  escapeHtml,
-  escapeHtmlComment,
-  extend,
-  getGlobalThis,
-  hasChanged,
-  hasOwn,
-  hyphenate,
-  invokeArrayFns,
-  isArray,
-  isDate,
-  isDef,
-  isFalse,
-  isFunction,
-  isHTMLTag,
-  isMap,
-  isModelListener,
-  isObject,
-  isOn,
-  isPlainObject,
-  isPrimitive,
-  isPromise,
-  isRegExp,
-  isSet,
-  isString,
-  isSymbol,
-  isTrue,
-  isUndef,
-  looseEqual,
-  looseIndexOf,
-  makeMap,
-  normalizeClass,
-  normalizeProps,
-  normalizeStyle,
-  objectToString,
-  once,
-  parseStringStyle,
-  remove,
-  stringifyStyle,
-  toArray,
-  toDisplayString,
-  toHandlerKey,
-  toNumber,
-  toObject,
-  toRawType,
-  toString,
-  toTypeString,
-  warn,
-};
+```bash
+npm i rainbow-shared -S
 ```
 
+## Usage
 
-## cdn
+**ES module**
+
+```js
+import { looseEqual } from "rainbow-shared";
+
+console.log(looseEqual(["Hello,world!"], ["Hello,world!"])); // true
+```
+
+**CommonJS**
+
+```js
+const { looseEqual } = require("rainbow-shared");
+
+console.log(looseEqual(["Hello,world!"], ["Hello,world!"])); // true
+```
+
+**CDN link**
+
+> 采用`iife` 模式打包，生成全局对象 `R`。
 
 - https://cdn.jsdelivr.net/npm/rainbow-shared/dist/index.iife.js
 - https://unpkg.com/rainbow-shared/dist/index.iife.js
-
-**demo**
 
 ```html
 <!DOCTYPE html>
@@ -91,11 +52,81 @@ export {
     </script>
   </body>
 </html>
-
 ```
 
-## npm use
+## Support utils
 
-```bash
-npm install rainbow-shared
+```js
+export {
+  EMPTY_ARR,
+  EMPTY_OBJ,
+  NO,
+  NOOP,
+  addParamsToUrl,
+  cacheObj,
+  cacheStaticFn,
+  camelize,
+  capitalize,
+  curry,
+  debounce,
+  deepClone,
+  def,
+  escapeHtml,
+  escapeHtmlComment,
+  extend,
+  get,
+  getGlobalThis,
+  getObjValByAge,
+  getQueryJson,
+  getQueryString,
+  hasChanged,
+  hasOwn,
+  hyphenate,
+  invokeArrayFns,
+  isArray,
+  isDate,
+  isDef,
+  isEmpty,
+  isFalse,
+  isFunction,
+  isHTMLTag,
+  isMap,
+  isModelListener,
+  isObject,
+  isOn,
+  isPlainObject,
+  isPrimitive,
+  isPromise,
+  isRegExp,
+  isSet,
+  isString,
+  isSymbol,
+  isTrue,
+  isUndef,
+  isUrl,
+  loadCss,
+  loadJs,
+  looseEqual,
+  looseIndexOf,
+  makeMap,
+  normalizeClass,
+  normalizeProps,
+  normalizeStyle,
+  objectToString,
+  once,
+  parseStringStyle,
+  promiseWrapper,
+  remove,
+  stringifyStyle,
+  throttle,
+  toArray,
+  toDisplayString,
+  toHandlerKey,
+  toNumber,
+  toObject,
+  toRawType,
+  toString,
+  toTypeString,
+  warn,
+};
 ```
