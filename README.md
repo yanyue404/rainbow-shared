@@ -56,6 +56,8 @@ console.log(looseEqual(["Hello,world!"], ["Hello,world!"])); // true
 
 ## Support utils
 
+使用方式可以通过 [cdn 链接](https://cdn.jsdelivr.net/npm/rainbow-shared/dist/index.iife.js) 查阅函数源码。
+
 ```js
 export {
   EMPTY_ARR,

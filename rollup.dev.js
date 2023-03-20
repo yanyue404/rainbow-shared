@@ -3,7 +3,6 @@ import node from "@rollup/plugin-node-resolve";
 import commonjs from "@rollup/plugin-commonjs";
 import replace from "@rollup/plugin-replace";
 import json from "rollup-plugin-json";
-import { terser } from "rollup-plugin-terser";
 import alias from "@rollup/plugin-alias";
 import postcss from "rollup-plugin-postcss";
 import serve from "rollup-plugin-serve";
@@ -66,35 +65,7 @@ if (isDev) {
     serve({
       open: true,
       port: 8001,
-      contentBase: "dist",
-    })
-  );
-}
-
-if (isPrd) {
-  config.output.push(
-    {
-      file: pkg.main,
-      format: "cjs",
-      exports: "named",
-      sourcemap: isDev,
-    },
-    {
-      file: pkg.module,
-      format: "es",
-      exports: "named",
-      sourcemap: isDev,
-    }
-  );
-  // 压缩一下
-  config.plugins.push(
-    terser({
-      compress: {
-        pure_getters: true,
-        unsafe: true,
-        unsafe_comps: true,
-        warnings: false,
-      },
+      contentBase: ["demo", "dist"],
     })
   );
 }

@@ -1,6 +1,6 @@
 {
   "name": "rainbow-shared",
-  "version": "0.5.3",
+  "version": "0.5.4",
   "author": "yanyue404",
   "description": "rainbow 的 实用函数， 基于 @vue/shared",
   "keywords": [
@@ -11,8 +11,8 @@
   "module": "dist/index.es.js",
   "iife": "dist/index.iife.js",
   "scripts": {
-    "dev": "cross-env NODE_ENV=development rollup --config ./rollup.config.js -w",
-    "build": "cross-env NODE_ENV=production rollup --config ./rollup.config.js"
+    "dev": "cross-env NODE_ENV=development rollup --config ./rollup.dev.js -w",
+    "build": "cross-env NODE_ENV=production rollup --config ./rollup.prd.js"
   },
   "dependencies": {
     "object-hash": "^3.0.0"
