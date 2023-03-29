@@ -1,6 +1,6 @@
-export * from "./shared";
+import { isObject, isArray } from "./shared";
 
-export function isEmpty(value) {
+export function isEmpty(value: any) {
   if (isObject(value)) {
     if (value == null) {
       return true;
@@ -87,23 +87,23 @@ export function cacheStaticFn(fn) {
 }
 
 /* function a() {
-  console.log("do a =>");
-  return "a";
-}
-function b() {
-  console.log("do d =>");
-  return "b";
-}
-const cacheA = cacheStaticFn(a);
-const cacheB = cacheStaticFn(b);
-
-cacheA(); // log: do a => 存储:  Map(1) {'' => 'a'} => 已有结果
-cacheA(); // 已有结果
-cacheA(); // 已有结果
-
-cacheB(); // log: do b => 存储:  Map(1) {'' => 'b'} => 已有结果
-cacheB(); // 已有结果
-cacheB(); // 已有结果 */
+    console.log("do a =>");
+    return "a";
+  }
+  function b() {
+    console.log("do d =>");
+    return "b";
+  }
+  const cacheA = cacheStaticFn(a);
+  const cacheB = cacheStaticFn(b);
+  
+  cacheA(); // log: do a => 存储:  Map(1) {'' => 'a'} => 已有结果
+  cacheA(); // 已有结果
+  cacheA(); // 已有结果
+  
+  cacheB(); // log: do b => 存储:  Map(1) {'' => 'b'} => 已有结果
+  cacheB(); // 已有结果
+  cacheB(); // 已有结果 */
 
 /**
  * 柯里化函数

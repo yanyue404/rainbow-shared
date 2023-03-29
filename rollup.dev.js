@@ -7,6 +7,7 @@ import alias from "@rollup/plugin-alias";
 import postcss from "rollup-plugin-postcss";
 import serve from "rollup-plugin-serve";
 import livereload from "rollup-plugin-livereload";
+import typescript from "@rollup/plugin-typescript";
 import pkg from "./package.json";
 
 const path = require("path");
@@ -18,7 +19,7 @@ const isDev = env === "development";
 const isPrd = env === "production";
 
 const config = {
-  input: "./src/main.js",
+  input: "./src/index.ts",
   output: [
     {
       file: pkg.iife,
@@ -33,9 +34,10 @@ const config = {
   plugins: [
     node(),
     // 先不用 babel
-    // babel({
-    //   exclude: "node_modules/**", // 只编译我们的源代码
-    // }),
+    babel({
+      exclude: "node_modules/**", // 只编译我们的源代码
+    }),
+    typescript({ tsconfig: "./tsconfig.json" }),
     json(),
     postcss(),
     alias({

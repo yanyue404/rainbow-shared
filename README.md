@@ -132,3 +132,8 @@ export {
   warn,
 };
 ```
+
+## Reference
+
+- https://github.com/vuejs/core/tree/main/packages/shared
+- https://github.com/slorber/awesome-only-resolves-last-promise

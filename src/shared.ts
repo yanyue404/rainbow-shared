@@ -16,24 +16,24 @@ export const NO = () => false;
 /* 类型判断 */
 
 export const objectToString = Object.prototype.toString;
-export const toTypeString = (value) => objectToString.call(value);
+export const toTypeString = (value: unknown) => objectToString.call(value);
 
-export const toRawType = (value) => {
+export const toRawType = (value: unknown) => {
   // extract "RawType" from strings like "[object RawType]"
   return toTypeString(value).slice(8, -1);
 };
-export function isUndef(v) {
+export function isUndef(v: unknown) {
   return v === undefined || v === null;
 }
 
-export function isDef(v) {
+export function isDef(v: unknown) {
   return v !== undefined && v !== null;
 }
 
 /**
  * Check if value is primitive.
  */
-export function isPrimitive(value) {
+export function isPrimitive(value: unknown) {
   return (
     typeof value === "string" ||
     typeof value === "number" ||
@@ -45,49 +45,56 @@ export function isPrimitive(value) {
 
 export const isArray = Array.isArray;
 
-export const isMap = (val) => toTypeString(val) === "[object Map]";
+// TODO: 这是什么返回写法
+export const isMap = (val: unknown): val is Map<any, any> =>
+  toTypeString(val) === "[object Map]";
 
-export const isSet = (val) => toTypeString(val) === "[object Set]";
+export const isSet = (val: unknown) => toTypeString(val) === "[object Set]";
 
-export const isDate = (val) => toTypeString(val) === "[object Date]";
+export const isDate = (val: unknown) => toTypeString(val) === "[object Date]";
 
-export const isRegExp = (val) => toTypeString(val) === "[object RegExp]";
+export const isRegExp = (val: unknown) =>
+  toTypeString(val) === "[object RegExp]";
 
-export const isFunction = (val) => typeof val === "function";
+export const isFunction = (val: unknown) => typeof val === "function";
 
-export const isString = (val) => typeof val === "string";
+export const isString = (val: unknown) => typeof val === "string";
 
-export const isSymbol = (val) => typeof val === "symbol";
+export const isSymbol = (val: unknown) => typeof val === "symbol";
 
-export const isObject = (val) => val !== null && typeof val === "object";
+export const isObject = (val: unknown) =>
+  val !== null && typeof val === "object";
 
-export const isPromise = (val) => {
+// TODO: 写法不一样 https://github.com/vuejs/core/blob/main/packages/shared/src/general.ts
+export const isPromise = (val: any) => {
   return isObject(val) && isFunction(val.then) && isFunction(val.catch);
 };
 
-export const isPlainObject = (val) => toTypeString(val) === "[object Object]";
+export const isPlainObject = (val: unknown) =>
+  toTypeString(val) === "[object Object]";
 
 /* 字符串方法 */
 
 const onRE = /^on[^a-z]/;
-export const isOn = (key) => onRE.test(key);
+export const isOn = (key: string) => onRE.test(key);
 
-export const isModelListener = (key) => key.startsWith("onUpdate:");
+export const isModelListener = (key: string) => key.startsWith("onUpdate:");
 
 // 缓存函数
-const cacheStringFunction = (fn) => {
-  const cache = Object.create(null);
-  return (str) => {
+// TODO: 这个泛型有点复杂
+const cacheStringFunction = <T extends (str: string) => string>(fn: T): T => {
+  const cache: Record<string, string> = Object.create(null);
+  return ((str: string) => {
     const hit = cache[str];
     return hit || (cache[str] = fn(str));
-  };
+  }) as T;
 };
 
 const camelizeRE = /-(\w)/g;
 /**
  * @连字符转驼峰 ui-tile => uiTile
  */
-export const camelize = cacheStringFunction((str) => {
+export const camelize = cacheStringFunction((str: string): string => {
   return str.replace(camelizeRE, (_, c) => (c ? c.toUpperCase() : ""));
 });
 
@@ -115,11 +122,11 @@ export const toHandlerKey = cacheStringFunction((str) =>
 
 /* 简化方法 */
 
-export function isTrue(v) {
+export function isTrue(v: unknown) {
   return v === true;
 }
 
-export function isFalse(v) {
+export function isFalse(v: unknown) {
   return v === false;
 }
 
@@ -127,7 +134,7 @@ export function isFalse(v) {
 export const extend = Object.assign;
 
 // 数组删除某项
-export const remove = (arr, el) => {
+export const remove = <T>(arr: T[], el: T) => {
   const i = arr.indexOf(el);
   if (i > -1) {
     arr.splice(i, 1);
@@ -136,10 +143,11 @@ export const remove = (arr, el) => {
 
 // 检测是否属性是否拥有
 const hasOwnProperty = Object.prototype.hasOwnProperty;
-export const hasOwn = (val, key) => hasOwnProperty.call(val, key);
+export const hasOwn = (val: object, key: string | symbol) =>
+  hasOwnProperty.call(val, key);
 
 // 全局对象
-let _globalThis;
+let _globalThis: any;
 export const getGlobalThis = () => {
   return (
     _globalThis ||
@@ -157,7 +165,7 @@ export const getGlobalThis = () => {
 };
 
 // 劫持对象属性
-export const def = (obj, key, value) => {
+export const def = (obj: object, key: string | symbol, value: any) => {
   Object.defineProperty(obj, key, {
     configurable: true,
     enumerable: false,
@@ -166,19 +174,22 @@ export const def = (obj, key, value) => {
 };
 
 // 执行数组里的函数
-export const invokeArrayFns = (fns, arg) => {
+export const invokeArrayFns = (fns: Function[], arg?: any) => {
   for (let i = 0; i < fns.length; i++) {
     fns[i](arg);
   }
 };
 
 // compare whether a value has changed, accounting for NaN.
-export const hasChanged = (value, oldValue) => !Object.is(value, oldValue);
+export const hasChanged = (value: any, oldValue: any) =>
+  !Object.is(value, oldValue);
 
 /**
  * Convert a value to a string that is actually rendered.
  */
-export function toString(val) {
+// FIXME: _toString 定义
+const _toString = "";
+export function toString(val: any) {
   return val == null
     ? ""
     : Array.isArray(val) || (isPlainObject(val) && val.toString === _toString)
@@ -193,7 +204,7 @@ export function toString(val) {
  * @return {*|Number}
  */
 
-export function toNumber(value) {
+export function toNumber(value: unknown) {
   if (typeof value !== "string") {
     return value;
   } else {
@@ -204,7 +215,7 @@ export function toNumber(value) {
 /**
  * Convert an Array-like object to a real Array.
  */
-export function toArray(list, start) {
+export function toArray(list: any[], start: number) {
   start = start || 0;
   let i = list.length - start;
   const ret = new Array(i);
@@ -217,7 +228,7 @@ export function toArray(list, start) {
 /**
  * Merge an Array of Objects into a single Object.
  */
-export function toObject(arr) {
+export function toObject(arr: any[]) {
   const res = {};
   for (let i = 0; i < arr.length; i++) {
     if (arr[i]) {
@@ -229,23 +240,23 @@ export function toObject(arr) {
 /**
  * Ensure a function is called only once.
  */
-export function once(fn) {
+export function once(fn: Function) {
   let called = false;
   return function () {
     if (!called) {
       called = true;
-      fn.apply(this, arguments);
+      // FIXME: 这里怎么申明
+      // fn.apply(this, arguments);
     }
   };
 }
 
-export const warn = (msg, vm) => {
+export const warn = (msg: string, vm: any) => {
   console.error("[Cus warn]: " + msg + (vm || ""));
 };
 /* 很有用的方法 */
 
 // makeMap 创建 map 检查 key 是否存在
-
 /**
  * Make a map and return a function for checking if a key
  * is in that map.
@@ -253,9 +264,12 @@ export const warn = (msg, vm) => {
  * \/\*#\_\_PURE\_\_\*\/
  * So that rollup can tree-shake them if necessary.
  */
-export function makeMap(str, expectsLowerCase) {
-  const map = Object.create(null);
-  const list = str.split(",");
+export function makeMap(
+  str: string,
+  expectsLowerCase?: boolean
+): (key: string) => boolean {
+  const map: Record<string, boolean> = Object.create(null);
+  const list: Array<string> = str.split(",");
   for (let i = 0; i < list.length; i++) {
     map[list[i]] = true;
   }
@@ -278,7 +292,7 @@ const HTML_TAGS =
 
 export const isHTMLTag = makeMap(HTML_TAGS);
 
-function looseCompareArrays(a, b) {
+function looseCompareArrays(a: any[], b: any[]): boolean {
   if (a.length !== b.length) return false;
   let equal = true;
   for (let i = 0; equal && i < a.length; i++) {
@@ -288,7 +302,7 @@ function looseCompareArrays(a, b) {
 }
 
 // 检查两个值是否松散相等 (不需要引用地址相同，属性和值相同即可)
-export function looseEqual(a, b) {
+export function looseEqual(a: any, b: any) {
   if (a === b) return true;
   let aValidType = isDate(a);
   let bValidType = isDate(b);
@@ -338,7 +352,7 @@ export function looseEqual(a, b) {
 }
 
 // 返回 val 在 arr 中的索引
-export function looseIndexOf(arr, val) {
+export function looseIndexOf(arr: any[], val: any): number {
   return arr.findIndex((item) => looseEqual(item, val));
 }
 
@@ -346,7 +360,7 @@ export function looseIndexOf(arr, val) {
 
 const escapeRE = /["'&<>]/;
 
-export function escapeHtml(string) {
+export function escapeHtml(string: unknown) {
   const str = "" + string;
   const match = escapeRE.exec(str);
 
@@ -393,7 +407,7 @@ export function escapeHtml(string) {
 // https://www.w3.org/TR/html52/syntax.html#comments
 const commentStripRE = /^-?>|<!--|-->|--!>|<!-$/g;
 
-export function escapeHtmlComment(src) {
+export function escapeHtmlComment(src: string): string {
   return src.replace(commentStripRE, "");
 }
 
@@ -403,7 +417,8 @@ export function escapeHtmlComment(src) {
  * For converting {{ interpolation }} values to displayed strings.
  * @private
  */
-export const toDisplayString = (val) => {
+// TODO: 这里不让用 unknown，Type 'unknown' is not assignable to type 'string'
+export const toDisplayString = (val: any): string => {
   return isString(val)
     ? val
     : val == null
@@ -415,7 +430,7 @@ export const toDisplayString = (val) => {
     : String(val);
 };
 
-const replacer = (_key, val) => {
+const replacer = (_key: string, val: any): any => {
   // ref 的包装值在页面展示是这样解开的
   // can't use isRef here since @vue/shared has no deps
   if (val && val.__v_isRef) {
@@ -423,7 +438,7 @@ const replacer = (_key, val) => {
   } else if (isMap(val)) {
     return {
       [`Map(${val.size})`]: [...val.entries()].reduce((entries, [key, val]) => {
-        entries[`${key} =>`] = val;
+        (entries as any)[`${key} =>`] = val;
         return entries;
       }, {}),
     };
@@ -440,14 +455,20 @@ const replacer = (_key, val) => {
 // normalizeProp 转换 props
 
 // 用于将标签的内联 style 里的属性转化为标准的 style 属性。
-export function normalizeStyle(value) {
+
+export type NormalizedStyle = Record<string, string | number>;
+
+// TODO: Type 'unknown' is not assignable to type 'string | NormalizedStyle | undefined'.
+export function normalizeStyle(
+  value: any
+): NormalizedStyle | string | undefined {
   if (isArray(value)) {
-    const res = {};
+    const res: NormalizedStyle = {};
     for (let i = 0; i < value.length; i++) {
       const item = value[i];
       const normalized = isString(item)
         ? parseStringStyle(item)
-        : normalizeStyle(item);
+        : (normalizeStyle(item) as NormalizedStyle);
       if (normalized) {
         for (const key in normalized) {
           res[key] = normalized[key];
@@ -483,8 +504,8 @@ const listDelimiterRE = /;(?![^(]*\))/g;
 const propertyDelimiterRE = /:([^]+)/;
 const styleCommentRE = /\/\*.*?\*\//gs;
 
-export function parseStringStyle(cssText) {
-  const ret = {};
+export function parseStringStyle(cssText: string): NormalizedStyle {
+  const ret: NormalizedStyle = {};
   cssText
     .replace(styleCommentRE, "")
     .split(listDelimiterRE)
@@ -498,7 +519,8 @@ export function parseStringStyle(cssText) {
 }
 
 // 将对象格式的样式转化为对象格式并且将样式属性转化
-export function stringifyStyle(styles) {
+//TODO: The right-hand side of a 'for...in' statement must be of type 'any', an object type or a type parameter, but here has type 'string | NormalizedStyle'
+export function stringifyStyle(styles: any): string {
   let ret = "";
   if (!styles || isString(styles)) {
     return ret;
@@ -515,7 +537,8 @@ export function stringifyStyle(styles) {
 }
 
 // 用于将标签属性 class 转化为标准的 class
-export function normalizeClass(value) {
+// TODO: Type 'unknown' is not assignable to type 'string'
+export function normalizeClass(value: any): string {
   let res = "";
   if (isString(value)) {
     res = value;
@@ -556,7 +579,7 @@ console.log(normalizeClass(arr)); // a c
 console.log(normalizeClass(obj)); // a c */
 
 // 用于 props 上的 class 和 style 属性转化
-export function normalizeProps(props) {
+export function normalizeProps(props: Record<string, any> | null) {
   if (!props) return null;
   let { class: klass, style } = props;
   if (klass && !isString(klass)) {
