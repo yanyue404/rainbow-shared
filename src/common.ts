@@ -1,4 +1,4 @@
-import { isObject, isArray } from "./shared";
+import { isObject, isArray, isFunction, looseEqual } from "./shared";
 
 export function isEmpty(value: any) {
   if (isObject(value)) {
@@ -21,9 +21,13 @@ export function isEmpty(value: any) {
  * @return {Function} - the debounced function
  */
 
-export function debounce(func, wait) {
-  var timeout, args, context, timestamp, result;
-  var later = function () {
+export function debounce(func: Function, wait: number): Function {
+  let timeout: any,
+    args: any,
+    context: null,
+    timestamp: number,
+    result: Function;
+  let later = function () {
     var last = Date.now() - timestamp;
     if (last < wait && last >= 0) {
       timeout = setTimeout(later, wait - last);
@@ -44,7 +48,7 @@ export function debounce(func, wait) {
   };
 }
 
-export function throttle(fn, delay) {
+export function throttle(fn: Function, delay: number) {
   let curTime = Date.now();
 
   return function () {
@@ -63,11 +67,11 @@ export function throttle(fn, delay) {
  * @param {function} p 返回promise对象的function
  * @returns 一个永远成功返回一个数组的异步方法，数组的第一项存放错误信息，第二项存放结果
  */
-export function promiseWrapper(p) {
-  return (...args) => {
+export function promiseWrapper(p: any) {
+  return (...args: any[]) => {
     return p(...args)
-      .then((res) => [null, res])
-      .catch((err) => [err, null]);
+      .then((res: any) => [null, res])
+      .catch((err: any) => [err, null]);
   };
 }
 
@@ -75,9 +79,9 @@ export function promiseWrapper(p) {
  * 缓存静态方法的value
  * @param {*} fn  fn 的参数中不能使用 引用类型
  */
-export function cacheStaticFn(fn) {
+export function cacheStaticFn(fn: Function) {
   const cacheMap = new Map();
-  return (...args) => {
+  return (...args: any[]) => {
     let cacheKey = args.join("-");
     if (!cacheMap.has(cacheKey)) {
       cacheMap.set(cacheKey, fn(...args));
@@ -108,7 +112,7 @@ export function cacheStaticFn(fn) {
 /**
  * 柯里化函数
  */
-export const curry = (fn, ...args) => {
+export const curry = (fn: Function, ...args: any[]) => {
   // 函数的参数个数可以直接通过函数数的.length属性来访问
   if (fn.length === args.length) {
     // 传入的参数大于等于原始函数fn的参数个数，则直接执行该函数
@@ -117,10 +121,10 @@ export const curry = (fn, ...args) => {
 
   // 传入的参数小于原始函数fn的参数个数时
   // 则继续对当前函数进行柯里化，返回一个接受所有参数（当前参数和剩余参数）的函数
-  return (...rest) => curry(fn, ...args, ...rest);
+  return (...rest: any[]) => curry(fn, ...args, ...rest);
 };
 
-export function isUrl(url) {
+export function isUrl(url: string) {
   return /^htt(p|ps):\/\//.test(url);
 }
 
@@ -130,7 +134,7 @@ export function isUrl(url) {
  * @param {str} url  要从什么链接上面拿参数  字符  支持密文  可选填
  * @return {str} 参数值
  */
-export function getQueryString(param, url) {
+export function getQueryString(param: string, url: string | undefined): string {
   var searchUrl = window.location.href;
   if (url) {
     searchUrl = url.indexOf("?") ? url.substr(url.indexOf("?")) : searchUrl;
@@ -149,8 +153,8 @@ export function getQueryString(param, url) {
  * @param {str} url  页面的url, 选传, 默认当前页面地址（url是未被编码的明文格式）
  * @returns {obj} json    json对象
  */
-export function getQueryJson(url) {
-  var json = {};
+export function getQueryJson(url: string) {
+  var json: Record<string, any> = {};
   var urlStr = isUrl(url) ? url : location.href;
   var splits = urlStr.split("?");
   if (splits && splits.length >= 2) {
@@ -165,7 +169,11 @@ export function getQueryJson(url) {
   return json;
 }
 
-export function addParamsToUrl(url = "", params = {}, addToHash = false) {
+export function addParamsToUrl(
+  url = "",
+  params: Record<string, any> = {},
+  addToHash = false
+) {
   let hashpos = url.indexOf("#");
   let hash = "";
   let path = url;
@@ -204,8 +212,8 @@ export function addParamsToUrl(url = "", params = {}, addToHash = false) {
   return path + search + hash;
 }
 
-export function loadCss(url, callback) {
-  return new Promise((resolve) => {
+export function loadCss(url: string, callback?: Function) {
+  return new Promise((resolve: Function) => {
     var node = document.createElement("link");
     node.type = "text/css";
     node.rel = "stylesheet";
@@ -218,13 +226,13 @@ export function loadCss(url, callback) {
   });
 }
 
-export function loadJs(url, callback, attr) {
+export function loadJs(url: string, callback: any, attr: any) {
   if (!isFunction(callback)) {
     attr = callback;
     callback = null;
   }
-  return new Promise((resolve, reject) => {
-    var script = document.createElement("script");
+  return new Promise((resolve: Function, reject) => {
+    var script: any = document.createElement("script");
     script.type = "text/javascript";
     if (isObject(attr)) {
       Object.keys(attr).forEach((key) => {
@@ -255,10 +263,10 @@ export function loadJs(url, callback, attr) {
   });
 }
 
-export const deepClone = (o, cached) => {
+export const deepClone = (o: Record<string, any>, cached: any) => {
   if (o instanceof Object) {
     let cache = new Map();
-    let result;
+    let result: Record<string, any>;
 
     if (o instanceof Function) {
       if (o.prototype) {
@@ -266,7 +274,7 @@ export const deepClone = (o, cached) => {
           return o.apply(this, arguments);
         };
       } else {
-        result = (...args) => {
+        result = (...args: any[]) => {
           return o.call(undefined, ...args);
         };
       }
@@ -304,8 +312,12 @@ export const deepClone = (o, cached) => {
  * @param {*} defaultValue 如果解析值是 undefined ，这值会被返回
  * @return {*}
  */
-export function get(obj, path, defaultValue) {
-  let chain = Array.isArray(path) ? path : path.split(/[\.\[\]]+/);
+export function get(
+  obj: Record<string, any>,
+  path: string,
+  defaultValue?: any
+) {
+  let chain: string[] = Array.isArray(path) ? path : path.split(/[\.\[\]]+/);
   let val = chain.reduce((prev, curr) => {
     if (prev) {
       return (prev = prev[curr]);
@@ -324,7 +336,7 @@ export function get(obj, path, defaultValue) {
  * @return {any} 命中的缓存对象 {key,value}
  */
 const cache = [{ key: {}, value: true }];
-export function cacheObj(key, value) {
+export function cacheObj(key: Record<string, any>, value: any) {
   let someIndex = cache.findIndex((v) => looseEqual(v.key, key));
   if (someIndex !== -1) {
     return cache[someIndex];
@@ -343,7 +355,7 @@ export function cacheObj(key, value) {
  * @param {age} [sting]
  * @return {any} 命中的 value 值
  */
-export function getObjValByAge(obj, age) {
+export function getObjValByAge(obj: Record<string, any>, age: string) {
   const keys = Object.keys(obj);
   let result = "";
   keys.forEach((item) => {

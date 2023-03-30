@@ -22,18 +22,18 @@ export const toRawType = (value: unknown) => {
   // extract "RawType" from strings like "[object RawType]"
   return toTypeString(value).slice(8, -1);
 };
-export function isUndef(v: unknown) {
+export function isUndef(v: any): v is undefined | null {
   return v === undefined || v === null;
 }
 
-export function isDef(v: unknown) {
+export function isDef<T>(v: T): v is NonNullable<T> {
   return v !== undefined && v !== null;
 }
 
 /**
  * Check if value is primitive.
  */
-export function isPrimitive(value: unknown) {
+export function isPrimitive(value: unknown): boolean {
   return (
     typeof value === "string" ||
     typeof value === "number" ||
@@ -45,7 +45,7 @@ export function isPrimitive(value: unknown) {
 
 export const isArray = Array.isArray;
 
-// TODO: 这是什么返回写法
+// is 类型保护机制：若返回值为 true，则 val 类型为 Map。这一点放在 if 里边有用
 export const isMap = (val: unknown): val is Map<any, any> =>
   toTypeString(val) === "[object Map]";
 
@@ -58,15 +58,15 @@ export const isRegExp = (val: unknown) =>
 
 export const isFunction = (val: unknown) => typeof val === "function";
 
-export const isString = (val: unknown) => typeof val === "string";
+export const isString = (val: unknown): val is string =>
+  typeof val === "string";
 
 export const isSymbol = (val: unknown) => typeof val === "symbol";
 
-export const isObject = (val: unknown) =>
+export const isObject = (val: unknown): boolean =>
   val !== null && typeof val === "object";
 
-// TODO: 写法不一样 https://github.com/vuejs/core/blob/main/packages/shared/src/general.ts
-export const isPromise = (val: any) => {
+export const isPromise = (val: any): val is Promise<any> => {
   return isObject(val) && isFunction(val.then) && isFunction(val.catch);
 };
 
@@ -81,7 +81,7 @@ export const isOn = (key: string) => onRE.test(key);
 export const isModelListener = (key: string) => key.startsWith("onUpdate:");
 
 // 缓存函数
-// TODO: 这个泛型有点复杂
+// TODO: 这个泛型有点复杂, 还有一种 https://github.com/vuejs/vue/blob/main/src/shared/util.ts
 const cacheStringFunction = <T extends (str: string) => string>(fn: T): T => {
   const cache: Record<string, string> = Object.create(null);
   return ((str: string) => {
@@ -122,11 +122,11 @@ export const toHandlerKey = cacheStringFunction((str) =>
 
 /* 简化方法 */
 
-export function isTrue(v: unknown) {
+export function isTrue(v: unknown): boolean {
   return v === true;
 }
 
-export function isFalse(v: unknown) {
+export function isFalse(v: unknown): boolean {
   return v === false;
 }
 
@@ -187,12 +187,11 @@ export const hasChanged = (value: any, oldValue: any) =>
 /**
  * Convert a value to a string that is actually rendered.
  */
-// FIXME: _toString 定义
-const _toString = "";
 export function toString(val: any) {
   return val == null
     ? ""
-    : Array.isArray(val) || (isPlainObject(val) && val.toString === _toString)
+    : Array.isArray(val) ||
+      (isPlainObject(val) && val.toString === objectToString)
     ? JSON.stringify(val, null, 2)
     : String(val);
 }
@@ -215,7 +214,7 @@ export function toNumber(value: unknown) {
 /**
  * Convert an Array-like object to a real Array.
  */
-export function toArray(list: any[], start: number) {
+export function toArray(list: any[], start?: number): Array<any> {
   start = start || 0;
   let i = list.length - start;
   const ret = new Array(i);
@@ -228,7 +227,7 @@ export function toArray(list: any[], start: number) {
 /**
  * Merge an Array of Objects into a single Object.
  */
-export function toObject(arr: any[]) {
+export function toObject(arr: any[]): object {
   const res = {};
   for (let i = 0; i < arr.length; i++) {
     if (arr[i]) {
@@ -245,8 +244,8 @@ export function once(fn: Function) {
   return function () {
     if (!called) {
       called = true;
-      // FIXME: 这里怎么申明
-      // fn.apply(this, arguments);
+      // noImplicitThis , 允许 this 表达式的值为 any类型
+      fn.apply(this, arguments);
     }
   };
 }
@@ -417,7 +416,6 @@ export function escapeHtmlComment(src: string): string {
  * For converting {{ interpolation }} values to displayed strings.
  * @private
  */
-// TODO: 这里不让用 unknown，Type 'unknown' is not assignable to type 'string'
 export const toDisplayString = (val: any): string => {
   return isString(val)
     ? val
@@ -458,7 +456,6 @@ const replacer = (_key: string, val: any): any => {
 
 export type NormalizedStyle = Record<string, string | number>;
 
-// TODO: Type 'unknown' is not assignable to type 'string | NormalizedStyle | undefined'.
 export function normalizeStyle(
   value: any
 ): NormalizedStyle | string | undefined {
@@ -519,8 +516,9 @@ export function parseStringStyle(cssText: string): NormalizedStyle {
 }
 
 // 将对象格式的样式转化为对象格式并且将样式属性转化
-//TODO: The right-hand side of a 'for...in' statement must be of type 'any', an object type or a type parameter, but here has type 'string | NormalizedStyle'
-export function stringifyStyle(styles: any): string {
+export function stringifyStyle(
+  styles: Record<string, string | number> | string
+): string {
   let ret = "";
   if (!styles || isString(styles)) {
     return ret;
@@ -537,7 +535,6 @@ export function stringifyStyle(styles: any): string {
 }
 
 // 用于将标签属性 class 转化为标准的 class
-// TODO: Type 'unknown' is not assignable to type 'string'
 export function normalizeClass(value: any): string {
   let res = "";
   if (isString(value)) {

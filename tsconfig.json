@@ -1,17 +1,19 @@
 {
   "compilerOptions": {
     "sourceMap": true,
-    "target": "es2015",
-    "module": "es2015",
+    "target": "es2016",
+    "module": "esnext",
     "moduleResolution": "node",
     "noEmitOnError": true,
-    "lib": ["es2017", "DOM"],
     "strict": true,
-    "esModuleInterop": false,
-    "outDir": "out-tsc",
-    "rootDir": "./",
     "allowJs": true,
-    "noImplicitAny": true
+    "lib": ["es2017", "DOM"],
+    "skipLibCheck": true,
+    "noImplicitThis": false,
+    "outDir": ".",
+    "rootDir": "./",
+    "noUnusedLocals": true,
+    "removeComments": true
   },
   "include": ["src"],
   "exclude": ["node_modules", "build", "dist", "example", "rollup.config.js"]
