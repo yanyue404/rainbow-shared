@@ -250,8 +250,8 @@ export function once(fn: Function) {
   };
 }
 
-export const warn = (msg: string, vm: any) => {
-  console.error("[Cus warn]: " + msg + (vm || ""));
+export const warn = (msg: string, ...args: any[]y) => {
+  console.warn("[Cus warn]: " + msg , ...args);
 };
 /* 很有用的方法 */
 
