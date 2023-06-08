@@ -369,3 +369,100 @@ export function getObjValByAge(obj: Record<string, any>, age: string) {
   });
   return result;
 }
+
+/**
+ * 格式化金额
+ * @param {number} number 待格式化金额
+ * @param {number} precision 小数位精度
+ * @param {string} symbol 钱币标识
+ * @returns
+ */
+ export function formatMoney(number, { precision = 2, symbol = '￥' } = {}) {
+  if (number === undefined || number === null || number === '' || isNaN(number))
+    return ''
+  const negative = number < 0 ? '-' : ''
+  let [integer, decimal] = toFixed(Math.abs(number), precision).split('.')
+  const mod = integer.length > 3 ? integer.length % 3 : 0
+
+  // fix: 当number 大于1万，且小数点后面全是0，就不展示小数点后的内容了
+  if (number > 10000 && /^0+$/g.test(decimal)) {
+    decimal = ''
+  }
+  return (
+    symbol +
+    negative +
+    (mod ? integer.substr(0, mod) + ',' : '') +
+    integer.substr(mod).replace(/(\d{3})(?=\d)/g, '$1,') +
+    (decimal ? '.' + decimal : '')
+  )
+}
+
+/**
+ * 按指定精度格式化小数
+ * @param {number} number 待格式化数字
+ * @param {number} precision 精度
+ * @returns
+ */
+export function toFixed(number, precision) {
+  const val = Math.round(Math.abs(precision))
+  precision = isNaN(val) ? 2 : precision
+  const power = Math.pow(10, precision)
+  return (Math.round((number + 1e-8) * power) / power).toFixed(precision)
+}
+
+/**
+ * 加法
+ * @param  {...any} n
+ */
+export function add(...n) {
+  return n.reduce((ji, item) => {
+    let l1 = (ji.toString().split('.')[1] || '').length
+    let l2 = (item.toString().split('.')[1] || '').length
+    let l = Math.pow(10, Math.max(l1, l2))
+    let r = (ji * l + item * l) / l
+    return toFixed(r)
+  })
+}
+
+/**
+ * 乘法
+ * @param  {...any} n
+ */
+export function mul(...n) {
+  return n.reduce((ji, item) => {
+    let n1 = (ji.toString().split('.')[1] || '').length
+    let n2 = (item.toString().split('.')[1] || '').length
+    let r =
+      (ji * Math.pow(10, n1) * item * Math.pow(10, n2)) / Math.pow(10, n1 + n2)
+    return toFixed(r)
+  })
+}
+
+/**
+ * 除法
+ * @param  {...any} n
+ */
+export function div(...n) {
+  return n.reduce((ji, item) => {
+    let n1 = (ji.toString().split('.')[1] || '').length
+    let n2 = (item.toString().split('.')[1] || '').length
+    let r =
+      (ji * Math.pow(10, n1) * item * Math.pow(10, n2)) / Math.pow(10, n1 + n2)
+    return toFixed(r)
+  })
+}
+
+/**
+ * 减法
+ * @param  {...any} n
+ */
+export function sub(...n) {
+  return n.reduce((ji, item) => {
+    let l1 = (ji.toString().split('.')[1] || '').length
+    let l2 = (item.toString().split('.')[1] || '').length
+    let n = Math.max(l1, l2)
+    let l = Math.pow(10, n)
+    let r = (ji * l - item * l) / l
+    return toFixed(r)
+  })
+}
