@@ -143,8 +143,8 @@ var R = (function (exports) {
             }
         };
     }
-    const warn = (msg, vm) => {
-        console.error("[Cus warn]: " + msg + (vm || ""));
+    const warn = (msg, ...args) => {
+        console.warn("[Cus warn]: " + msg, ...args);
     };
     function makeMap(str, expectsLowerCase) {
         const map = Object.create(null);
@@ -383,17 +383,361 @@ var R = (function (exports) {
         return props;
     }
 
+    function isEmpty(value) {
+        if (isObject(value)) {
+            if (value == null) {
+                return true;
+            }
+            if (isArray(value)) {
+                return !value.length;
+            }
+            return Object.keys(value).length === 0;
+        }
+        return false;
+    }
+    function debounce(func, wait) {
+        let timeout, args, context, timestamp, result;
+        let later = function () {
+            var last = Date.now() - timestamp;
+            if (last < wait && last >= 0) {
+                timeout = setTimeout(later, wait - last);
+            }
+            else {
+                timeout = null;
+                result = func.apply(context, args);
+                if (!timeout)
+                    context = args = null;
+            }
+        };
+        return function () {
+            context = this;
+            args = arguments;
+            timestamp = Date.now();
+            if (!timeout) {
+                timeout = setTimeout(later, wait);
+            }
+            return result;
+        };
+    }
+    function throttle(fn, delay) {
+        let curTime = Date.now();
+        return function () {
+            const context = this;
+            const args = arguments;
+            const nowTime = Date.now();
+            if (nowTime - curTime >= delay) {
+                curTime = Date.now();
+                return fn.apply(context, args);
+            }
+        };
+    }
+    function promiseWrapper(p) {
+        return (...args) => {
+            return p(...args)
+                .then((res) => [null, res])
+                .catch((err) => [err, null]);
+        };
+    }
+    function cacheStaticFn(fn) {
+        const cacheMap = new Map();
+        return (...args) => {
+            let cacheKey = args.join("-");
+            if (!cacheMap.has(cacheKey)) {
+                cacheMap.set(cacheKey, fn(...args));
+            }
+            return cacheMap.get(cacheKey);
+        };
+    }
+    const curry = (fn, ...args) => {
+        if (fn.length === args.length) {
+            return fn.call(fn, ...args);
+        }
+        return (...rest) => curry(fn, ...args, ...rest);
+    };
+    function isUrl(url) {
+        return /^htt(p|ps):\/\//.test(url);
+    }
+    function getQueryString(param, url) {
+        var searchUrl = window.location.href;
+        if (url) {
+            searchUrl = url.indexOf("?") ? url.substr(url.indexOf("?")) : searchUrl;
+        }
+        var reg = new RegExp("(^|&|\\?)" + param + "=([^&]+)(&|$)", "i");
+        var r = searchUrl.substr(1).match(reg);
+        if (r != null) {
+            return decodeURIComponent(r[2]) || "";
+        }
+        return "";
+    }
+    function getQueryJson(url) {
+        var json = {};
+        var urlStr = isUrl(url) ? url : location.href;
+        var splits = urlStr.split("?");
+        if (splits && splits.length >= 2) {
+            var array = splits[1].split("&");
+            if (array && array.length > 0) {
+                for (var i = 0; i < array.length; i++) {
+                    var params = array[i].split("=");
+                    json[params[0]] = params[1];
+                }
+            }
+        }
+        return json;
+    }
+    function addParamsToUrl(url = "", params = {}, addToHash = false) {
+        let hashpos = url.indexOf("#");
+        let hash = "";
+        let path = url;
+        let search = "";
+        if (hashpos >= 0) {
+            hash = url.slice(hashpos);
+            path = url.slice(0, hashpos);
+        }
+        let str = addToHash ? hash : path;
+        let cururlparams = (str && getQueryJson(str)) || {};
+        params = {
+            ...cururlparams,
+            ...params,
+        };
+        let serachPos = path.indexOf("?");
+        if (serachPos >= 0) {
+            search = path.slice(serachPos);
+            path = path.slice(0, serachPos);
+        }
+        addToHash ? (hash = hash.split("?")[0]) : (search = "");
+        str = "";
+        Object.keys(params).forEach((key) => {
+            if (params[key]) {
+                str += "&" + key + "=" + params[key];
+            }
+        });
+        if (str) {
+            str = "?" + str.slice(1);
+            if (addToHash) {
+                hash = hash + str;
+            }
+            else {
+                search = str;
+            }
+        }
+        return path + search + hash;
+    }
+    function loadCss(url, callback) {
+        return new Promise((resolve) => {
+            var node = document.createElement("link");
+            node.type = "text/css";
+            node.rel = "stylesheet";
+            node.href = url;
+            node.onerror = node.onload = function () {
+                resolve();
+                isFunction(callback) && callback();
+            };
+            document.head.appendChild(node);
+        });
+    }
+    function loadJs(url, callback, attr) {
+        if (!isFunction(callback)) {
+            attr = callback;
+            callback = null;
+        }
+        return new Promise((resolve, reject) => {
+            var script = document.createElement("script");
+            script.type = "text/javascript";
+            if (isObject(attr)) {
+                Object.keys(attr).forEach((key) => {
+                    if (attr.hasOwnProperty(key)) {
+                        script.setAttribute(key, attr[key]);
+                    }
+                });
+            }
+            if (script.readyState) {
+                script.onreadystatechange = function () {
+                    if (script.readyState == "loaded" || script.readyState == "complete") {
+                        script.onreadystatechange = null;
+                        isFunction(callback) && callback();
+                        resolve();
+                    }
+                };
+            }
+            else {
+                script.onload = function () {
+                    isFunction(callback) && callback();
+                    resolve();
+                };
+            }
+            script.onerror = function () {
+                reject();
+            };
+            script.src = url;
+            document.head.appendChild(script);
+        });
+    }
+    const deepClone = (o, cached) => {
+        if (o instanceof Object) {
+            let cache = new Map();
+            let result;
+            if (o instanceof Function) {
+                if (o.prototype) {
+                    result = function () {
+                        return o.apply(this, arguments);
+                    };
+                }
+                else {
+                    result = (...args) => {
+                        return o.call(undefined, ...args);
+                    };
+                }
+            }
+            else if (o instanceof Array) {
+                result = [];
+            }
+            else if (o instanceof Date) {
+                return +new Date(o);
+            }
+            else if (o instanceof RegExp) {
+                result = new RegExp(o.source, o.flags);
+            }
+            else {
+                result = {};
+            }
+            for (const key in o) {
+                if (Object.hasOwnProperty.call(o, key)) {
+                    if (cached && cached.has(o)) {
+                        result[key] = cached.get(key);
+                    }
+                    else {
+                        let val = deepClone(o[key], cache);
+                        cache.set(key, val);
+                        result[key] = val;
+                    }
+                }
+            }
+            return result;
+        }
+        else {
+            return o;
+        }
+    };
+    function get(obj, path, defaultValue) {
+        let chain = Array.isArray(path) ? path : path.split(/[\.\[\]]+/);
+        let val = chain.reduce((prev, curr) => {
+            if (prev) {
+                return (prev = prev[curr]);
+            }
+            else {
+                return prev;
+            }
+        }, obj);
+        return val === undefined ? defaultValue : val;
+    }
+    const cache = [{ key: {}, value: true }];
+    function cacheObj(key, value) {
+        let someIndex = cache.findIndex((v) => looseEqual(v.key, key));
+        if (someIndex !== -1) {
+            return cache[someIndex];
+        }
+        else if (value !== undefined) {
+            cache.push({
+                key,
+                value,
+            });
+        }
+    }
+    function getObjValByAge(obj, age) {
+        const keys = Object.keys(obj);
+        let result = "";
+        keys.forEach((item) => {
+            let [age1, age2] = item.split("-");
+            if (age2 === undefined) {
+                throw new Error("[Error]: 键的表示方式必须为 A-B 形式");
+            }
+            if (Number(age1) <= Number(age) && Number(age2) >= Number(age)) {
+                result = obj[item];
+            }
+        });
+        return result;
+    }
+    function formatMoney(number, { precision = 2, symbol = "￥" } = {}) {
+        if (number === undefined || number === null || number === "" || isNaN(number))
+            return "";
+        const negative = number < 0 ? "-" : "";
+        let [integer, decimal] = toFixed(Math.abs(number), precision).split(".");
+        const mod = integer.length > 3 ? integer.length % 3 : 0;
+        if (number > 10000 && /^0+$/g.test(decimal)) {
+            decimal = "";
+        }
+        return (symbol +
+            negative +
+            (mod ? integer.substr(0, mod) + "," : "") +
+            integer.substr(mod).replace(/(\d{3})(?=\d)/g, "$1,") +
+            (decimal ? "." + decimal : ""));
+    }
+    function toFixed(number, precision = 2) {
+        const val = Math.round(Math.abs(precision));
+        precision = isNaN(val) ? 2 : precision;
+        const power = Math.pow(10, precision);
+        return (Math.round((number + 1e-8) * power) / power).toFixed(precision);
+    }
+    function add(...n) {
+        return n.reduce((ji, item) => {
+            let l1 = (ji.toString().split(".")[1] || "").length;
+            let l2 = (item.toString().split(".")[1] || "").length;
+            let l = Math.pow(10, Math.max(l1, l2));
+            let r = (ji * l + item * l) / l;
+            return toFixed(r);
+        });
+    }
+    function mul(...n) {
+        return n.reduce((ji, item) => {
+            let n1 = (ji.toString().split(".")[1] || "").length;
+            let n2 = (item.toString().split(".")[1] || "").length;
+            let r = (ji * Math.pow(10, n1) * item * Math.pow(10, n2)) / Math.pow(10, n1 + n2);
+            return toFixed(r);
+        });
+    }
+    function div(...n) {
+        return n.reduce((ji, item) => {
+            let n1 = (ji.toString().split(".")[1] || "").length;
+            let n2 = (item.toString().split(".")[1] || "").length;
+            let r = (ji * Math.pow(10, n1) * item * Math.pow(10, n2)) / Math.pow(10, n1 + n2);
+            return toFixed(r);
+        });
+    }
+    function sub(...n) {
+        return n.reduce((ji, item) => {
+            let l1 = (ji.toString().split(".")[1] || "").length;
+            let l2 = (item.toString().split(".")[1] || "").length;
+            let n = Math.max(l1, l2);
+            let l = Math.pow(10, n);
+            let r = (ji * l - item * l) / l;
+            return toFixed(r);
+        });
+    }
+
     exports.EMPTY_ARR = EMPTY_ARR;
     exports.EMPTY_OBJ = EMPTY_OBJ;
     exports.NO = NO;
     exports.NOOP = NOOP;
+    exports.add = add;
+    exports.addParamsToUrl = addParamsToUrl;
+    exports.cacheObj = cacheObj;
+    exports.cacheStaticFn = cacheStaticFn;
     exports.camelize = camelize;
     exports.capitalize = capitalize;
+    exports.curry = curry;
+    exports.debounce = debounce;
+    exports.deepClone = deepClone;
     exports.def = def;
+    exports.div = div;
     exports.escapeHtml = escapeHtml;
     exports.escapeHtmlComment = escapeHtmlComment;
     exports.extend = extend;
+    exports.formatMoney = formatMoney;
+    exports.get = get;
     exports.getGlobalThis = getGlobalThis;
+    exports.getObjValByAge = getObjValByAge;
+    exports.getQueryJson = getQueryJson;
+    exports.getQueryString = getQueryString;
     exports.hasChanged = hasChanged;
     exports.hasOwn = hasOwn;
     exports.hyphenate = hyphenate;
@@ -401,6 +745,7 @@ var R = (function (exports) {
     exports.isArray = isArray;
     exports.isDate = isDate;
     exports.isDef = isDef;
+    exports.isEmpty = isEmpty;
     exports.isFalse = isFalse;
     exports.isFunction = isFunction;
     exports.isHTMLTag = isHTMLTag;
@@ -417,19 +762,27 @@ var R = (function (exports) {
     exports.isSymbol = isSymbol;
     exports.isTrue = isTrue;
     exports.isUndef = isUndef;
+    exports.isUrl = isUrl;
+    exports.loadCss = loadCss;
+    exports.loadJs = loadJs;
     exports.looseEqual = looseEqual;
     exports.looseIndexOf = looseIndexOf;
     exports.makeMap = makeMap;
+    exports.mul = mul;
     exports.normalizeClass = normalizeClass;
     exports.normalizeProps = normalizeProps;
     exports.normalizeStyle = normalizeStyle;
     exports.objectToString = objectToString;
     exports.once = once;
     exports.parseStringStyle = parseStringStyle;
+    exports.promiseWrapper = promiseWrapper;
     exports.remove = remove;
     exports.stringifyStyle = stringifyStyle;
+    exports.sub = sub;
+    exports.throttle = throttle;
     exports.toArray = toArray;
     exports.toDisplayString = toDisplayString;
+    exports.toFixed = toFixed;
     exports.toHandlerKey = toHandlerKey;
     exports.toNumber = toNumber;
     exports.toObject = toObject;

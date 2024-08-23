@@ -148,6 +148,7 @@ export const hasOwn = (val: object, key: string | symbol) =>
 
 // 全局对象
 let _globalThis: any;
+
 export const getGlobalThis = () => {
   return (
     _globalThis ||
@@ -250,7 +251,7 @@ export function once(fn: Function) {
   };
 }
 
-export const warn = (msg: string, ...args: any[]y) => {
+export const warn = (msg: string, ...args: any[]) => {
   console.warn("[Cus warn]: " + msg , ...args);
 };
 /* 很有用的方法 */

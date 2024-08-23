@@ -22,11 +22,7 @@ export function isEmpty(value: any) {
  */
 
 export function debounce(func: Function, wait: number): Function {
-  let timeout: any,
-    args: any,
-    context: null,
-    timestamp: number,
-    result: Function;
+  let timeout: any, args: any, context: null, timestamp: number, result: Function;
   let later = function () {
     var last = Date.now() - timestamp;
     if (last < wait && last >= 0) {
@@ -169,11 +165,7 @@ export function getQueryJson(url: string) {
   return json;
 }
 
-export function addParamsToUrl(
-  url = "",
-  params: Record<string, any> = {},
-  addToHash = false
-) {
+export function addParamsToUrl(url = "", params: Record<string, any> = {}, addToHash = false) {
   let hashpos = url.indexOf("#");
   let hash = "";
   let path = url;
@@ -212,7 +204,7 @@ export function addParamsToUrl(
   return path + search + hash;
 }
 
-export function loadCss(url: string, callback?: Function) {
+export function loadCss(url: string, callback: Function) {
   return new Promise((resolve: Function) => {
     var node = document.createElement("link");
     node.type = "text/css";
@@ -312,11 +304,7 @@ export const deepClone = (o: Record<string, any>, cached: any) => {
  * @param {*} defaultValue 如果解析值是 undefined ，这值会被返回
  * @return {*}
  */
-export function get(
-  obj: Record<string, any>,
-  path: string,
-  defaultValue?: any
-) {
+export function get(obj: Record<string, any>, path: string, defaultValue?: any) {
   let chain: string[] = Array.isArray(path) ? path : path.split(/[\.\[\]]+/);
   let val = chain.reduce((prev, curr) => {
     if (prev) {
@@ -377,92 +365,94 @@ export function getObjValByAge(obj: Record<string, any>, age: string) {
  * @param {string} symbol 钱币标识
  * @returns
  */
- export function formatMoney(number, { precision = 2, symbol = '￥' } = {}) {
-  if (number === undefined || number === null || number === '' || isNaN(number))
-    return ''
-  const negative = number < 0 ? '-' : ''
-  let [integer, decimal] = toFixed(Math.abs(number), precision).split('.')
-  const mod = integer.length > 3 ? integer.length % 3 : 0
+export function formatMoney(number: any, { precision = 2, symbol = "￥" } = {}) {
+  if (number === undefined || number === null || number === "" || isNaN(number)) return symbol + "0.00";
+  const negative = number < 0 ? "-" : "";
+  let [integer, decimal] = toFixed(Math.abs(number), precision).split(".");
+  const mod = integer.length > 3 ? integer.length % 3 : 0;
 
   // fix: 当number 大于1万，且小数点后面全是0，就不展示小数点后的内容了
   if (number > 10000 && /^0+$/g.test(decimal)) {
-    decimal = ''
+    decimal = "";
   }
   return (
     symbol +
     negative +
-    (mod ? integer.substr(0, mod) + ',' : '') +
-    integer.substr(mod).replace(/(\d{3})(?=\d)/g, '$1,') +
-    (decimal ? '.' + decimal : '')
-  )
+    (mod ? integer.substr(0, mod) + "," : "") +
+    integer.substr(mod).replace(/(\d{3})(?=\d)/g, "$1,") +
+    (decimal ? "." + decimal : "")
+  );
 }
 
 /**
  * 按指定精度格式化小数
  * @param {number} number 待格式化数字
- * @param {number} precision 精度
+ * @param {number} precision 精度, 默认 0
  * @returns
  */
-export function toFixed(number, precision) {
-  const val = Math.round(Math.abs(precision))
-  precision = isNaN(val) ? 2 : precision
-  const power = Math.pow(10, precision)
-  return (Math.round((number + 1e-8) * power) / power).toFixed(precision)
+export function toFixed(number: number, precision: number = 0) {
+  const val = Math.round(Math.abs(precision));
+  precision = isNaN(val) ? 2 : precision;
+  const power = Math.pow(10, precision);
+  return (Math.round((number + 1e-8) * power) / power).toFixed(precision);
 }
 
 /**
  * 加法
  * @param  {...any} n
  */
-export function add(...n) {
+export function add(...n: any[]) {
   return n.reduce((ji, item) => {
-    let l1 = (ji.toString().split('.')[1] || '').length
-    let l2 = (item.toString().split('.')[1] || '').length
-    let l = Math.pow(10, Math.max(l1, l2))
-    let r = (ji * l + item * l) / l
-    return toFixed(r)
-  })
-}
-
-/**
- * 乘法
- * @param  {...any} n
- */
-export function mul(...n) {
-  return n.reduce((ji, item) => {
-    let n1 = (ji.toString().split('.')[1] || '').length
-    let n2 = (item.toString().split('.')[1] || '').length
-    let r =
-      (ji * Math.pow(10, n1) * item * Math.pow(10, n2)) / Math.pow(10, n1 + n2)
-    return toFixed(r)
-  })
-}
-
-/**
- * 除法
- * @param  {...any} n
- */
-export function div(...n) {
-  return n.reduce((ji, item) => {
-    let n1 = (ji.toString().split('.')[1] || '').length
-    let n2 = (item.toString().split('.')[1] || '').length
-    let r =
-      (ji * Math.pow(10, n1) * item * Math.pow(10, n2)) / Math.pow(10, n1 + n2)
-    return toFixed(r)
-  })
+    let l1 = (ji.toString().split(".")[1] || "").length;
+    let l2 = (item.toString().split(".")[1] || "").length;
+    let l = Math.pow(10, Math.max(l1, l2));
+    let r = (ji * l + item * l) / l;
+    return r;
+  });
 }
 
 /**
  * 减法
  * @param  {...any} n
  */
-export function sub(...n) {
+export function sub(...n: any[]) {
   return n.reduce((ji, item) => {
-    let l1 = (ji.toString().split('.')[1] || '').length
-    let l2 = (item.toString().split('.')[1] || '').length
-    let n = Math.max(l1, l2)
-    let l = Math.pow(10, n)
-    let r = (ji * l - item * l) / l
-    return toFixed(r)
-  })
+    let l1 = (ji.toString().split(".")[1] || "").length;
+    let l2 = (item.toString().split(".")[1] || "").length;
+    let n = Math.max(l1, l2);
+    let l = Math.pow(10, n);
+    let r = (ji * l - item * l) / l;
+    return r;
+  });
+}
+
+/**
+ * 乘法
+ * @param  {...any} n
+ */
+export function mul(...n: any[]) {
+  return n.reduce((ji, item) => {
+    let n1 = (ji.toString().split(".")[1] || "").length;
+    let n2 = (item.toString().split(".")[1] || "").length;
+    let r = (ji * Math.pow(10, n1) * item * Math.pow(10, n2)) / Math.pow(10, n1 + n2);
+    return r;
+  });
+}
+
+/**
+ * 除法
+ * @param  {...any} n
+ */
+export function div(...n: any[]) {
+  return n.reduce((ji, item) => {
+    if (item === 0) {
+      throw new Error("Cannot divide by zero");
+    }
+    let n1 = (ji.toString().split(".")[1] || "").length;
+    let n2 = (item.toString().split(".")[1] || "").length;
+    // 计算出当前结果与下一个数字的精度调整
+    const factor = Math.pow(10, n1 + n2);
+    let r = (((ji * Math.pow(10, n1)) / item) * Math.pow(10, n2)) / factor;
+    return r;
+  });
 }
